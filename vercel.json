@@ -1,37 +1,42 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "redirects": [
+  "routes": [
     {
-      "source": "/irpf-soluciona.org/informativo.html",
-      "destination": "/informativo",
-      "permanent": false
+      "src": "/irpf-soluciona.org/informativo.html",
+      "status": 308,
+      "headers": {
+        "Location": "/informativo"
+      }
     },
     {
-      "source": "/irpf-soluciona.org/index.html",
-      "destination": "/",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/irpf-soluciona.org/index.html"
+      "src": "/irpf-soluciona.org/index.html",
+      "status": 308,
+      "headers": {
+        "Location": "/"
+      }
     },
     {
-      "source": "/informativo",
-      "destination": "/irpf-soluciona.org/index.html"
+      "handle": "filesystem"
     },
     {
-      "source": "/checkout",
-      "destination": "/irpf-soluciona.org/index.html"
+      "src": "^/$",
+      "dest": "/irpf-soluciona.org/index.html"
     },
     {
-      "source": "/pagamento",
-      "destination": "/irpf-soluciona.org/index.html"
+      "src": "/informativo",
+      "dest": "/irpf-soluciona.org/index.html"
     },
     {
-      "source": "/product/:id",
-      "destination": "/irpf-soluciona.org/index.html"
+      "src": "/checkout",
+      "dest": "/irpf-soluciona.org/index.html"
+    },
+    {
+      "src": "/pagamento",
+      "dest": "/irpf-soluciona.org/index.html"
+    },
+    {
+      "src": "/product/(.*)",
+      "dest": "/irpf-soluciona.org/index.html"
     }
   ]
 }
