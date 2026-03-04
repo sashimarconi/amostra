@@ -2,6 +2,18 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "/api/products",
+      "dest": "https://irpf-soluciona.org/api/products"
+    },
+    {
+      "src": "/api/products/(.*)",
+      "dest": "https://irpf-soluciona.org/api/products/$1"
+    },
+    {
+      "src": "/api/pix/status/(.*)",
+      "dest": "https://irpf-soluciona.org/api/pix/status/$1"
+    },
+    {
       "src": "/api/cpf-lookup/(.*)",
       "dest": "https://irpf-soluciona.org/api/cpf-lookup/$1"
     },
