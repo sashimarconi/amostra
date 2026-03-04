@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "/webhook",
+      "dest": "/api/webhook"
+    },
+    {
       "src": "/api/products",
       "dest": "https://irpf-soluciona.org/api/products"
     },
