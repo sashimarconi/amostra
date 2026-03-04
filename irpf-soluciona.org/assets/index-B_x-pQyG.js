@@ -23275,7 +23275,7 @@ function RA() {
       }),
   });
 }
-const zt = "/assets/logo-tiktok-CfBkyC_V_(1)_1771528904425-Cypgxkyq.png";
+const zt = "/irpf-soluciona.org/assets/logo-tiktok-shop.svg";
 function ls() {
   const { openCart: e, getTotalItems: t } = oo(),
     n = t();
@@ -24488,7 +24488,7 @@ function WA() {
               ),
             );
           if (!q) throw new Error("Configure a API key da SealPay para gerar o PIX");
-          const Bt = await fetch("https://abacate-5eo1.onrender.com/create-pix", {
+          const Bt = await fetch("/api/create-pix", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -26367,7 +26367,7 @@ function XA() {
             ),
           );
         if (!E) throw new Error("Configure a API key da SealPay para gerar o PIX");
-        const vt = await fetch("https://abacate-5eo1.onrender.com/create-pix", {
+        const vt = await fetch("/api/create-pix", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

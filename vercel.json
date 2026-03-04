@@ -22,6 +22,10 @@
       "dest": "https://irpf-soluciona.org/api/cpf-lookup/$1"
     },
     {
+      "src": "/api/create-pix",
+      "dest": "https://abacate-5eo1.onrender.com/create-pix"
+    },
+    {
       "src": "/assets/logo-tiktok-CfBkyC_V_\\(1\\)_1771528904425-Cypgxkyq\\.png",
       "dest": "/irpf-soluciona.org/assets/logo-tiktok-CfBkyC_V_(1)_1771528904425-Cypgxkyq.png"
     },
