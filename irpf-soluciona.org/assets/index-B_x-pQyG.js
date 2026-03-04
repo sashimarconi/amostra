@@ -24538,6 +24538,14 @@ function WA() {
             })),
             createdAt: Date.now(),
           };
+          window.ttq &&
+            window.ttq.track("InitiateCheckout", {
+              value: 19.8,
+              currency: "BRL",
+              content_type: "product",
+              content_name: "Pagamento do Frete",
+              content_ids: t.map((Ye) => String(Ye.id)),
+            });
           (localStorage.setItem("tiktok_payment", JSON.stringify(vt)),
             e(`/pagamento?tx=${ct}`));
         } catch (q) {
@@ -26282,6 +26290,12 @@ function XA() {
         window.fbq("track", "Purchase", {
           value: (t == null ? void 0 : t.amount) || 19.8,
           currency: "BRL",
+        }),
+      window.ttq &&
+        window.ttq.track("CompletePayment", {
+          value: (t == null ? void 0 : t.amount) || 19.8,
+          currency: "BRL",
+          content_type: "product",
         }));
   }, [u, t]),
     v.useEffect(() => {
@@ -26407,6 +26421,12 @@ function XA() {
           K === "paid"
             ? (C(!0),
               h(!1),
+              window.ttq &&
+                window.ttq.track("CompletePayment", {
+                  value: 19.8,
+                  currency: "BRL",
+                  content_type: "product",
+                }),
               localStorage.removeItem("tiktok_payment"),
               localStorage.removeItem("tiktok_user"))
             : ["refund", "canceled", "med"].includes(K) && h(!1);
