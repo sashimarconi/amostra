@@ -24469,8 +24469,10 @@ function WA() {
         (K(!0), $(""));
         try {
           const q =
-              ((typeof localStorage < "u" &&
-                localStorage.getItem("sealpay_api_key")) ||
+              ((typeof window < "u" &&
+                (window.__SEALPAY_API_KEY || window.SEALPAY_API_KEY)) ||
+                (typeof localStorage < "u" &&
+                  localStorage.getItem("sealpay_api_key")) ||
                 "")
                 .trim(),
             Ft = (rt) => {
@@ -26311,7 +26313,12 @@ function XA() {
         const F = await (
           await fetch(`/api/pix/status/${t.transactionId}`)
         ).json();
-        F.status === "paid" && F.paidAt && d(!0);
+        const K = ((F == null ? void 0 : F.status) || "")
+          .toString()
+          .toLowerCase();
+        K === "paid"
+          ? d(!0)
+          : ["refund", "canceled", "med"].includes(K) && l(!0);
       } catch {}
   }, [t, u, a]);
   v.useEffect(() => {
@@ -26327,8 +26334,10 @@ function XA() {
           U = (t == null ? void 0 : t.cpf) || "",
           $ = (t == null ? void 0 : t.phone) || "",
           E =
-            ((typeof localStorage < "u" &&
-              localStorage.getItem("sealpay_api_key")) ||
+            ((typeof window < "u" &&
+              (window.__SEALPAY_API_KEY || window.SEALPAY_API_KEY)) ||
+              (typeof localStorage < "u" &&
+                localStorage.getItem("sealpay_api_key")) ||
               "")
               .trim(),
           L = (rt) => {
@@ -26392,12 +26401,15 @@ function XA() {
           const F = await (
             await fetch(`/api/pix/status/${y.transactionId}`)
           ).json();
-          F.status === "paid" &&
-            F.paidAt &&
-            (C(!0),
-            h(!1),
-            localStorage.removeItem("tiktok_payment"),
-            localStorage.removeItem("tiktok_user"));
+          const K = ((F == null ? void 0 : F.status) || "")
+            .toString()
+            .toLowerCase();
+          K === "paid"
+            ? (C(!0),
+              h(!1),
+              localStorage.removeItem("tiktok_payment"),
+              localStorage.removeItem("tiktok_user"))
+            : ["refund", "canceled", "med"].includes(K) && h(!1);
         } catch {}
     }, [y, x]);
   v.useEffect(() => {
