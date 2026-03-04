@@ -24468,14 +24468,7 @@ function WA() {
       if (L) {
         (K(!0), $(""));
         try {
-          const q =
-              ((typeof window < "u" &&
-                (window.__SEALPAY_API_KEY || window.SEALPAY_API_KEY)) ||
-                (typeof localStorage < "u" &&
-                  localStorage.getItem("sealpay_api_key")) ||
-                "")
-                .trim(),
-            Ft = (rt) => {
+          const Ft = (rt) => {
               const Yt = document.cookie.match(
                 new RegExp("(?:^|; )" + rt + "=([^;]*)"),
               );
@@ -24487,7 +24480,6 @@ function WA() {
                 rt.toLowerCase().startsWith("utm_"),
               ),
             );
-          if (!q) throw new Error("Configure a API key da SealPay para gerar o PIX");
           const Bt = await fetch("/api/create-pix", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -24501,7 +24493,6 @@ function WA() {
                   taxId: l.replace(/\D/g, ""),
                 },
                 tracking: { utm: Ye, src: window.location.href },
-                api_key: q,
                 fbp: Ft("_fbp"),
                 fbc: Ft("_fbc"),
                 user_agent: navigator.userAgent,
@@ -24519,7 +24510,7 @@ function WA() {
           const Lt = zt.pixCode || zt.pix_code || "",
             ct = zt.txid || zt.id || "";
           if (!Lt || !ct)
-            throw new Error("Resposta inválida da SealPay ao criar o PIX");
+            throw new Error("Resposta inválida ao criar o PIX");
           const vt = {
             transactionId: ct,
             qrcode: Lt,
@@ -26347,13 +26338,6 @@ function XA() {
           K = (t == null ? void 0 : t.email) || "",
           U = (t == null ? void 0 : t.cpf) || "",
           $ = (t == null ? void 0 : t.phone) || "",
-          E =
-            ((typeof window < "u" &&
-              (window.__SEALPAY_API_KEY || window.SEALPAY_API_KEY)) ||
-              (typeof localStorage < "u" &&
-                localStorage.getItem("sealpay_api_key")) ||
-              "")
-              .trim(),
           L = (rt) => {
             const Yt = document.cookie.match(
               new RegExp("(?:^|; )" + rt + "=([^;]*)"),
@@ -26366,7 +26350,6 @@ function XA() {
               rt.toLowerCase().startsWith("utm_"),
             ),
           );
-        if (!E) throw new Error("Configure a API key da SealPay para gerar o PIX");
         const vt = await fetch("/api/create-pix", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -26380,7 +26363,6 @@ function XA() {
                 taxId: U.replace(/\D/g, ""),
               },
               tracking: { utm: q, src: window.location.href },
-              api_key: E,
               fbp: L("_fbp"),
               fbc: L("_fbc"),
               user_agent: navigator.userAgent,
@@ -26398,7 +26380,7 @@ function XA() {
         const rt = Ye.pixCode || Ye.pix_code || "",
           Yt = Ye.txid || Ye.id || "";
         if (!rt || !Yt)
-          throw new Error("Resposta inválida da SealPay ao criar o PIX");
+          throw new Error("Resposta inválida ao criar o PIX");
         b({
           transactionId: Yt,
           qrcode: rt,
