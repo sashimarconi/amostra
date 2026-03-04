@@ -23275,7 +23275,7 @@ function RA() {
       }),
   });
 }
-const zt = "/irpf-soluciona.org/assets/logo-tiktok-shop.svg";
+const zt = "/irpf-soluciona.org/assets/logo-tiktok-CfBkyC_V_(1)_1771528904425-Cypgxkyq.png";
 function ls() {
   const { openCart: e, getTotalItems: t } = oo(),
     n = t();
