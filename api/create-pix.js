@@ -16,11 +16,16 @@ function extractPixCode(payload) {
   return (
     payload?.pixCode ||
     payload?.pix_code ||
+    payload?.qrCode ||
+    payload?.qrcode ||
     payload?.pix?.code ||
+    payload?.pix?.qrcode ||
     payload?.pix?.copyPaste ||
     payload?.pix?.payload ||
     payload?.payment?.pix?.code ||
+    payload?.payment?.pix?.qrcode ||
     payload?.transaction?.pix?.code ||
+    payload?.transaction?.pix?.qrcode ||
     ""
   );
 }
