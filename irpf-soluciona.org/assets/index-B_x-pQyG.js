@@ -25058,7 +25058,7 @@ function QA({ open: e, onClose: t }) {
     if (j.length === 11) {
       y(!0);
       try {
-        const N = await fetch(`https://irpf-soluciona.org/api/cpf-lookup/${j}`);
+        const N = await fetch(`/api/cpf-lookup/${j}`);
         if (N.ok) {
           const A = await N.json();
           if (A.nome) {

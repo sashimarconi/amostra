@@ -2,8 +2,12 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "/api/cpf-lookup/(.*)",
+      "dest": "https://irpf-soluciona.org/api/cpf-lookup/$1"
+    },
+    {
       "src": "/assets/logo-tiktok-CfBkyC_V_\\(1\\)_1771528904425-Cypgxkyq\\.png",
-      "dest": "/irpf-soluciona.org/assets/logo-tiktok-shop.svg"
+      "dest": "/irpf-soluciona.org/assets/logo-tiktok-CfBkyC_V_(1)_1771528904425-Cypgxkyq.png"
     },
     {
       "src": "/assets/(.*)",
