@@ -96,6 +96,7 @@ export default async function handler(req, res) {
           title: description || "Pagamento",
           unitPrice: amount,
           quantity: 1,
+          tangible: false,
           externalRef: "checkout",
         },
       ],
