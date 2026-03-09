@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       endpoint: '/webhook',
-      message: 'Webhook ativo. Envie POST com eventos da Seal Pay.'
+      message: 'Webhook ativo. Envie POST com eventos da SpeedPag.'
     });
   }
 
@@ -23,8 +23,8 @@ export default async function handler(req, res) {
     }
   }
 
-  const txid = body.txid || body.id || null;
-  const status = (body.status || '').toString().toLowerCase();
+  const txid = body.objectId || body?.data?.id || body.txid || body.id || null;
+  const status = (body?.data?.status || body.status || '').toString().toLowerCase();
 
   return res.status(200).json({
     ok: true,

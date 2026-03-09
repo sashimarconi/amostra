@@ -1,14 +1,14 @@
-const GHOSTSPAY_BASE_URL = "https://api.ghostspaysv2.com/functions/v1";
+const SPEEDPAG_BASE_URL = "https://api.speedpag.com/v1";
 
 function getCredentials() {
-  const secretKey = process.env.GHOSTSPAY_SECRET_KEY || "";
-  const companyId = process.env.GHOSTSPAY_COMPANY_ID || "";
-  return { secretKey, companyId };
+  const publicKey = process.env.SPEEDPAG_PUBLIC_KEY || "";
+  const secretKey = process.env.SPEEDPAG_SECRET_KEY || "";
+  return { publicKey, secretKey };
 }
 
 function mapStatus(rawStatus) {
   const status = (rawStatus || "").toString().toLowerCase();
-  if (["paid", "approved", "succeeded", "success", "completed"].includes(status)) {
+  if (["paid", "approved", "completed"].includes(status)) {
     return "paid";
   }
   if (["refund", "refunded", "chargeback"].includes(status)) {
@@ -17,7 +17,7 @@ function mapStatus(rawStatus) {
   if (["canceled", "cancelled", "declined", "failed", "refused"].includes(status)) {
     return "canceled";
   }
-  if (["med"].includes(status)) {
+  if (["med", "in_protest"].includes(status)) {
     return "med";
   }
   return "pending";
@@ -34,15 +34,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "txid/id é obrigatório" });
     }
 
-    const { secretKey, companyId } = getCredentials();
-    if (!secretKey || !companyId) {
+    const { publicKey, secretKey } = getCredentials();
+    if (!publicKey || !secretKey) {
       return res.status(500).json({
-        error: "Credenciais GhostsPay não configuradas no servidor",
+        error: "Credenciais SpeedPag não configuradas no servidor",
       });
     }
-    const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
+    const auth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
 
-    const response = await fetch(`${GHOSTSPAY_BASE_URL}/transactions/${id}`, {
+    const response = await fetch(`${SPEEDPAG_BASE_URL}/transactions/${id}`, {
       method: "GET",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -60,14 +60,15 @@ export default async function handler(req, res) {
     }
 
     const rawStatus =
+      payload?.data?.status ||
       payload?.status ||
       payload?.transaction?.status ||
       payload?.payment?.status ||
-      payload?.data?.status ||
       "";
 
     const normalizedStatus = mapStatus(rawStatus);
     const paidAt =
+      payload?.data?.paidAt ||
       payload?.paidAt ||
       payload?.approvedAt ||
       payload?.payment?.paidAt ||

@@ -1,9 +1,9 @@
-const GHOSTSPAY_BASE_URL = "https://api.ghostspaysv2.com/functions/v1";
+const SPEEDPAG_BASE_URL = "https://api.speedpag.com/v1";
 
 function getCredentials() {
-  const secretKey = process.env.GHOSTSPAY_SECRET_KEY || "";
-  const companyId = process.env.GHOSTSPAY_COMPANY_ID || "";
-  return { secretKey, companyId };
+  const publicKey = process.env.SPEEDPAG_PUBLIC_KEY || "";
+  const secretKey = process.env.SPEEDPAG_SECRET_KEY || "";
+  return { publicKey, secretKey };
 }
 
 function buildOrigin(req) {
@@ -14,6 +14,7 @@ function buildOrigin(req) {
 
 function extractPixCode(payload) {
   return (
+    payload?.data?.pix?.qrcode ||
     payload?.pixCode ||
     payload?.pix_code ||
     payload?.qrCode ||
@@ -32,6 +33,7 @@ function extractPixCode(payload) {
 
 function extractTxid(payload) {
   return (
+    payload?.data?.id ||
     payload?.txid ||
     payload?.id ||
     payload?.transactionId ||
@@ -39,6 +41,20 @@ function extractTxid(payload) {
     payload?.transaction?.id ||
     ""
   );
+}
+
+function normalizeMetadata(metadata) {
+  if (!metadata) {
+    return undefined;
+  }
+  if (typeof metadata === "string") {
+    return metadata;
+  }
+  try {
+    return JSON.stringify(metadata);
+  } catch {
+    return undefined;
+  }
 }
 
 export default async function handler(req, res) {
@@ -55,23 +71,25 @@ export default async function handler(req, res) {
       });
     }
 
-    const { secretKey, companyId } = getCredentials();
-    if (!secretKey || !companyId) {
+    const { publicKey, secretKey } = getCredentials();
+    if (!publicKey || !secretKey) {
       return res.status(500).json({
-        error: "Credenciais GhostsPay não configuradas no servidor",
+        error: "Credenciais SpeedPag não configuradas no servidor",
       });
     }
-    const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
+    const auth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
 
     const payload = {
       amount,
-      description: description || "Pagamento",
-      paymentMethod: "PIX",
+      paymentMethod: "pix",
       customer: {
         name: customer.name,
         email: customer.email,
         phone: customer.cellphone || customer.phone || "",
-        document: customer.taxId || customer.cpf || "",
+        document: {
+          type: "cpf",
+          number: customer.taxId || customer.cpf || "",
+        },
       },
       items: [
         {
@@ -82,11 +100,11 @@ export default async function handler(req, res) {
         },
       ],
       postbackUrl: `${buildOrigin(req)}/webhook`,
-      metadata: metadata || {},
+      metadata: normalizeMetadata(metadata),
       pix: {},
     };
 
-    const ghostResponse = await fetch(`${GHOSTSPAY_BASE_URL}/transactions`, {
+    const speedpagResponse = await fetch(`${SPEEDPAG_BASE_URL}/transactions`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -96,11 +114,11 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload),
     });
 
-    const responseData = await ghostResponse.json().catch(() => ({}));
+    const responseData = await speedpagResponse.json().catch(() => ({}));
 
-    if (!ghostResponse.ok) {
-      return res.status(ghostResponse.status).json({
-        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na GhostsPay",
+    if (!speedpagResponse.ok) {
+      return res.status(speedpagResponse.status).json({
+        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na SpeedPag",
         details: responseData,
       });
     }
@@ -110,7 +128,7 @@ export default async function handler(req, res) {
 
     if (!pixCode || !txid) {
       return res.status(500).json({
-        error: "Resposta inválida da GhostsPay",
+        error: "Resposta inválida da SpeedPag",
         details: responseData,
       });
     }

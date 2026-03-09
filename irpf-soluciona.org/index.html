@@ -40,8 +40,73 @@
           e.parentNode.insertBefore(s, e);
         };
         ttq.load("D4OR4KJC77U1VUV91OE0");
+        ttq.load("D6K7NIBC77U2RD1SRUJ0");
         ttq.page();
       }(window, document, "ttq");
+    </script>
+    <script>
+      (function () {
+        if (window.__ttqPixPurchaseHookInstalled) return;
+        if (typeof window.fetch !== "function") return;
+
+        window.__ttqPixPurchaseHookInstalled = true;
+        var originalFetch = window.fetch.bind(window);
+
+        function getUrl(input) {
+          if (typeof input === "string") return input;
+          if (input && typeof input.url === "string") return input.url;
+          return "";
+        }
+
+        function getMethod(input, init) {
+          if (init && init.method) return String(init.method).toUpperCase();
+          if (input && input.method) return String(input.method).toUpperCase();
+          return "GET";
+        }
+
+        function parseRequestAmount(init) {
+          if (!init || typeof init.body !== "string") return 0;
+          try {
+            var parsed = JSON.parse(init.body);
+            return Number(parsed && parsed.amount ? parsed.amount : 0);
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        function firePurchase(amountInCents, transactionId) {
+          if (!window.ttq || typeof window.ttq.track !== "function") return;
+          var value = Number(amountInCents || 0) / 100;
+          window.ttq.track("Purchase", {
+            value: Number.isFinite(value) ? value : 0,
+            currency: "BRL",
+            content_type: "product",
+            content_name: "Pix Checkout",
+            event_id: transactionId || undefined,
+          });
+        }
+
+        window.fetch = async function (input, init) {
+          var response = await originalFetch(input, init);
+
+          try {
+            var url = getUrl(input);
+            var method = getMethod(input, init);
+            if (method === "POST" && /\/api\/create-pix(?:$|\?|\/)/.test(url) && response && response.ok) {
+              var cloned = response.clone();
+              var data = await cloned.json().catch(function () { return {}; });
+              var hasPix = Boolean(data && (data.pix_code || data.pixCode));
+              if (hasPix) {
+                firePurchase(parseRequestAmount(init), data.txid || data.id || "");
+              }
+            }
+          } catch (_) {
+            // Nao interrompe a jornada de checkout se o tracking falhar.
+          }
+
+          return response;
+        };
+      })();
     </script>
     <script>
       !function(f,b,e,v,n,t,s)
@@ -62,6 +127,7 @@
   <body>
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1393740129217356&amp;ev=PageView&amp;noscript=1"/></noscript>
     <noscript><img height="1" width="1" style="display:none" alt="" src="https://analytics.tiktok.com/i18n/pixel/events.gif?sdkid=D4OR4KJC77U1VUV91OE0&lib=ttq"/></noscript>
+    <noscript><img height="1" width="1" style="display:none" alt="" src="https://analytics.tiktok.com/i18n/pixel/events.gif?sdkid=D6K7NIBC77U2RD1SRUJ0&lib=ttq"/></noscript>
     <div id="root"></div>
     <script src="../sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
   </body>
