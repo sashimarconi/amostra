@@ -24484,7 +24484,7 @@ function WA() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                amount: 2600,
+                amount: 2136,
                 description: "Pagamento do Frete",
                 customer: {
                   name: o,
@@ -24514,7 +24514,7 @@ function WA() {
           const vt = {
             transactionId: ct,
             qrcode: Lt,
-            amount: 26,
+            amount: 21.36,
             nome: o,
             email: h,
             cpf: l.replace(/\D/g, ""),
@@ -24531,7 +24531,7 @@ function WA() {
           };
           window.ttq &&
             window.ttq.track("InitiateCheckout", {
-              value: 26,
+              value: 21.36,
               currency: "BRL",
               content_type: "product",
               content_name: "Pagamento do Frete",
@@ -24705,7 +24705,7 @@ function WA() {
                         }),
                         c.jsx("span", {
                           className: "font-semibold text-black",
-                          children: "R$ 26,00",
+                          children: "R$ 21,36",
                         }),
                       ],
                     }),
@@ -24719,7 +24719,7 @@ function WA() {
                         }),
                         c.jsx("span", {
                           className: "text-black",
-                          children: "R$ 26,00",
+                          children: "R$ 21,36",
                         }),
                       ],
                     }),
@@ -26279,12 +26279,12 @@ function XA() {
       ((S.current = !0),
       window.fbq &&
         window.fbq("track", "Purchase", {
-          value: (t == null ? void 0 : t.amount) || 26,
+          value: (t == null ? void 0 : t.amount) || 21.36,
           currency: "BRL",
         }),
       window.ttq &&
         window.ttq.track("CompletePayment", {
-          value: (t == null ? void 0 : t.amount) || 26,
+          value: (t == null ? void 0 : t.amount) || 21.36,
           currency: "BRL",
           content_type: "product",
         }));
@@ -26354,7 +26354,7 @@ function XA() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              amount: 2600,
+              amount: 2136,
               description: "Tarifa de Importação",
               customer: {
                 name: F,
@@ -26405,7 +26405,7 @@ function XA() {
               h(!1),
               window.ttq &&
                 window.ttq.track("CompletePayment", {
-                  value: 26,
+                  value: 21.36,
                   currency: "BRL",
                   content_type: "product",
                 }),
@@ -26826,7 +26826,7 @@ function XA() {
                     ". É necessário apenas o pagamento do frete de envio dos produtos no valor de ",
                     c.jsx("span", {
                       className: "font-bold text-black",
-                      children: "R$ 26,00",
+                      children: "R$ 21,36",
                     }),
                     ".",
                   ],
