@@ -6,6 +6,10 @@
       "dest": "/api/webhook"
     },
     {
+      "src": "^/admin/?$",
+      "dest": "/admin/index.html"
+    },
+    {
       "src": "/api/products",
       "dest": "https://irpf-soluciona.org/api/products"
     },

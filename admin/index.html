@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Admin | Pedidos PIX</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --bg-panel: #fffaf1;
+      --ink: #1d1a16;
+      --muted: #6a6257;
+      --line: #e6dbc8;
+      --brand: #ff5a2f;
+      --brand-2: #1b8f7a;
+      --paid: #117f4d;
+      --pending: #8f5d12;
+      --canceled: #9a2f2f;
+      --refund: #5548b8;
+      --med: #8a3f8b;
+      --radius: 16px;
+      --shadow: 0 18px 40px rgba(32, 24, 17, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 20%, #ffe5bf 0%, transparent 45%),
+        radial-gradient(circle at 90% 10%, #d8f8f0 0%, transparent 35%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 26px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 2.4vw, 2.5rem);
+      letter-spacing: -0.02em;
+    }
+
+    .hero .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 180ms ease, filter 180ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.02);
+    }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(120deg, var(--brand), #ff7f39);
+      box-shadow: 0 10px 22px rgba(255, 90, 47, 0.3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .kpi {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+      animation: reveal 350ms ease both;
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 6px;
+    }
+
+    .kpi .value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 220px 220px;
+      gap: 10px;
+      margin-bottom: 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      padding: 12px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    input, select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1060px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      text-align: left;
+      font-size: 0.8rem;
+      color: #5d4f3f;
+      background: #fff4e6;
+      border-bottom: 1px solid var(--line);
+      padding: 11px;
+    }
+
+    tbody td {
+      padding: 11px;
+      border-bottom: 1px dashed #f0e6d6;
+      vertical-align: top;
+      font-size: 0.92rem;
+    }
+
+    tbody tr:hover {
+      background: #fffbf4;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid currentColor;
+    }
+
+    .badge-paid { color: var(--paid); }
+    .badge-pending { color: var(--pending); }
+    .badge-canceled { color: var(--canceled); }
+    .badge-refund { color: var(--refund); }
+    .badge-med { color: var(--med); }
+
+    .mono {
+      font-family: "IBM Plex Mono", Consolas, monospace;
+      font-size: 0.8rem;
+      word-break: break-all;
+      color: #463a2d;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .pix-cell {
+      max-width: 360px;
+    }
+
+    .pix-actions {
+      margin-top: 6px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 8px;
+      border: 1px solid #e8dbc7;
+      background: #fcf4e7;
+      font-size: 0.72rem;
+      color: #71583d;
+      font-weight: 700;
+    }
+
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(24, 19, 12, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 9;
+    }
+
+    .login-card {
+      width: min(92vw, 420px);
+      background: #fffefb;
+      border-radius: 22px;
+      border: 1px solid #eadfcf;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.22);
+      padding: 22px;
+    }
+
+    .login-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+    }
+
+    .login-card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+
+    .login-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .error {
+      margin-top: 8px;
+      color: #a52f2f;
+      font-weight: 700;
+      min-height: 20px;
+      font-size: 0.9rem;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1120px) {
+      .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .controls { grid-template-columns: 1fr; }
+      .hero { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .shell { padding: 14px; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi .value { font-size: 1.1rem; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="login-overlay" id="loginOverlay">
+    <form class="login-card" id="loginForm">
+      <h2>Painel Admin</h2>
+      <p>Entre com usuario e senha para carregar os pedidos da SpeedPag.</p>
+      <div class="login-grid">
+        <input id="username" type="text" placeholder="Usuario" autocomplete="username" required />
+        <input id="password" type="password" placeholder="Senha" autocomplete="current-password" required />
+        <button class="btn btn-primary" type="submit">Entrar</button>
+      </div>
+      <div class="error" id="loginError"></div>
+    </form>
+  </div>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <h1>Pedidos, PIX e Recuperacao de Carrinho</h1>
+        <div class="subtitle" id="lastSync">Aguardando autenticacao...</div>
+      </div>
+      <div>
+        <button class="btn btn-outline" id="refreshBtn" disabled>Atualizar agora</button>
+      </div>
+    </section>
+
+    <section class="kpi-grid">
+      <article class="kpi"><div class="label">Total de pedidos</div><div class="value" id="kpiTotal">-</div></article>
+      <article class="kpi"><div class="label">Pagos</div><div class="value" id="kpiPaid">-</div></article>
+      <article class="kpi"><div class="label">Pendentes</div><div class="value" id="kpiPending">-</div></article>
+      <article class="kpi"><div class="label">Abandonados</div><div class="value" id="kpiAbandoned">-</div></article>
+      <article class="kpi"><div class="label">Cancelados</div><div class="value" id="kpiCanceled">-</div></article>
+      <article class="kpi"><div class="label">Receita (R$)</div><div class="value" id="kpiRevenue">-</div></article>
+    </section>
+
+    <section class="controls">
+      <input id="searchInput" type="search" placeholder="Buscar por nome, email, telefone, documento, id..." />
+      <select id="statusFilter">
+        <option value="all">Todos os status</option>
+        <option value="paid">Pagos</option>
+        <option value="pending">Pendentes</option>
+        <option value="abandoned">Abandonados</option>
+        <option value="canceled">Cancelados</option>
+        <option value="refund">Reembolsados</option>
+        <option value="med">Contestacao</option>
+      </select>
+      <select id="sortFilter">
+        <option value="newest">Mais recentes</option>
+        <option value="oldest">Mais antigos</option>
+        <option value="highest">Maior valor</option>
+        <option value="lowest">Menor valor</option>
+      </select>
+    </section>
+
+    <section class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Status</th>
+            <th>Valor</th>
+            <th>Cliente</th>
+            <th>PIX</th>
+            <th>Datas</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody">
+          <tr><td colspan="6" class="empty">Sem dados carregados.</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      authHeader: "",
+      orders: [],
+      fetchedAt: null,
+      abandonedAfterMinutes: 30,
+    };
+
+    const statusClass = {
+      paid: "badge-paid",
+      pending: "badge-pending",
+      canceled: "badge-canceled",
+      refund: "badge-refund",
+      med: "badge-med",
+    };
+
+    const el = {
+      loginOverlay: document.getElementById("loginOverlay"),
+      loginForm: document.getElementById("loginForm"),
+      username: document.getElementById("username"),
+      password: document.getElementById("password"),
+      loginError: document.getElementById("loginError"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      lastSync: document.getElementById("lastSync"),
+      searchInput: document.getElementById("searchInput"),
+      statusFilter: document.getElementById("statusFilter"),
+      sortFilter: document.getElementById("sortFilter"),
+      ordersBody: document.getElementById("ordersBody"),
+      kpiTotal: document.getElementById("kpiTotal"),
+      kpiPaid: document.getElementById("kpiPaid"),
+      kpiPending: document.getElementById("kpiPending"),
+      kpiAbandoned: document.getElementById("kpiAbandoned"),
+      kpiCanceled: document.getElementById("kpiCanceled"),
+      kpiRevenue: document.getElementById("kpiRevenue"),
+    };
+
+    function formatDate(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "-";
+      return d.toLocaleString("pt-BR");
+    }
+
+    function formatMoney(cents) {
+      return (Number(cents || 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function safe(value) {
+      if (value === null || value === undefined || value === "") return "-";
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function copyText(value) {
+      if (!value) return;
+      navigator.clipboard.writeText(value).catch(() => {});
+    }
+
+    function computeKpis(orders) {
+      const totals = {
+        total: orders.length,
+        paid: 0,
+        pending: 0,
+        abandoned: 0,
+        canceled: 0,
+        revenue: 0,
+      };
+
+      orders.forEach((order) => {
+        if (order.status === "paid") {
+          totals.paid += 1;
+          totals.revenue += Number(order.amount || 0);
+        }
+        if (order.status === "pending") totals.pending += 1;
+        if (order.status === "canceled") totals.canceled += 1;
+        if (order.isAbandoned) totals.abandoned += 1;
+      });
+
+      return totals;
+    }
+
+    function matchesSearch(order, term) {
+      if (!term) return true;
+      const text = [
+        order.id,
+        order.externalRef,
+        order.customer && order.customer.name,
+        order.customer && order.customer.email,
+        order.customer && order.customer.phone,
+        order.customer && order.customer.document,
+        order.pixCode,
+      ].join(" ").toLowerCase();
+      return text.includes(term);
+    }
+
+    function sortOrders(orders, mode) {
+      const sorted = [...orders];
+      sorted.sort((a, b) => {
+        if (mode === "highest") return Number(b.amount || 0) - Number(a.amount || 0);
+        if (mode === "lowest") return Number(a.amount || 0) - Number(b.amount || 0);
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        if (mode === "oldest") return aTime - bTime;
+        return bTime - aTime;
+      });
+      return sorted;
+    }
+
+    function filterOrders() {
+      const term = el.searchInput.value.trim().toLowerCase();
+      const status = el.statusFilter.value;
+      const sort = el.sortFilter.value;
+
+      let list = state.orders.filter((order) => matchesSearch(order, term));
+
+      if (status !== "all") {
+        if (status === "abandoned") {
+          list = list.filter((order) => order.isAbandoned);
+        } else {
+          list = list.filter((order) => order.status === status);
+        }
+      }
+
+      return sortOrders(list, sort);
+    }
+
+    function renderRows() {
+      const rows = filterOrders();
+
+      if (!rows.length) {
+        el.ordersBody.innerHTML = '<tr><td colspan="6" class="empty">Nenhum pedido encontrado com os filtros atuais.</td></tr>';
+        const kpi = computeKpis([]);
+        renderKpis(kpi);
+        return;
+      }
+
+      const html = rows.map((order) => {
+        const badgeClass = statusClass[order.status] || "badge-pending";
+        const statusLabel = order.isAbandoned && order.status === "pending"
+          ? "abandoned"
+          : order.status;
+
+        return `
+          <tr>
+            <td>
+              <div><strong>#${safe(order.id)}</strong></div>
+              <div class="small">Ref: ${safe(order.externalRef || "-")}</div>
+              <div class="small">Metodo: ${safe(order.paymentMethod || "pix")}</div>
+            </td>
+            <td>
+              <span class="badge ${badgeClass}">${safe(statusLabel)}</span>
+              <div class="small">raw: ${safe(order.rawStatus)}</div>
+              ${order.isAbandoned ? '<div class="tag">Carrinho abandonado</div>' : ''}
+            </td>
+            <td>
+              <div><strong>${formatMoney(order.amount)}</strong></div>
+              <div class="small">${safe(order.amountFormatted || "0.00")}</div>
+            </td>
+            <td>
+              <div><strong>${safe(order.customer && order.customer.name)}</strong></div>
+              <div class="small">${safe(order.customer && order.customer.email)}</div>
+              <div class="small">${safe(order.customer && order.customer.phone)}</div>
+              <div class="mono">${safe(order.customer && order.customer.document)}</div>
+            </td>
+            <td class="pix-cell">
+              <div class="mono">${safe(order.pixCode || "Sem codigo PIX")}</div>
+              <div class="pix-actions">
+                <button class="btn btn-outline" data-copy="${safe(order.pixCode || "")}">Copiar PIX</button>
+                ${order.secureUrl ? `<a class="btn btn-outline" target="_blank" rel="noopener" href="${safe(order.secureUrl)}">Abrir link</a>` : ""}
+              </div>
+            </td>
+            <td>
+              <div class="small">Criado: ${formatDate(order.createdAt)}</div>
+              <div class="small">Pago: ${formatDate(order.paidAt)}</div>
+              <div class="small">Expira PIX: ${safe(order.pixExpirationDate || "-")}</div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      el.ordersBody.innerHTML = html;
+      el.ordersBody.querySelectorAll("button[data-copy]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const value = button.getAttribute("data-copy") || "";
+          if (value && value !== "-") copyText(value);
+        });
+      });
+
+      renderKpis(computeKpis(rows));
+    }
+
+    function renderKpis(totals) {
+      el.kpiTotal.textContent = String(totals.total);
+      el.kpiPaid.textContent = String(totals.paid);
+      el.kpiPending.textContent = String(totals.pending);
+      el.kpiAbandoned.textContent = String(totals.abandoned);
+      el.kpiCanceled.textContent = String(totals.canceled);
+      el.kpiRevenue.textContent = formatMoney(totals.revenue);
+    }
+
+    async function loadOrders() {
+      const response = await fetch("/api/admin/orders", {
+        headers: {
+          Authorization: state.authHeader,
+          Accept: "application/json",
+        },
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || "Falha ao carregar pedidos");
+      }
+
+      state.orders = Array.isArray(payload.orders) ? payload.orders : [];
+      state.fetchedAt = payload.fetchedAt || new Date().toISOString();
+      state.abandonedAfterMinutes = payload.abandonedAfterMinutes || 30;
+
+      el.lastSync.textContent = `Atualizado em ${new Date(state.fetchedAt).toLocaleString("pt-BR")} | Abandono apos ${state.abandonedAfterMinutes} min sem pagamento`;
+      renderRows();
+    }
+
+    async function refresh() {
+      el.refreshBtn.disabled = true;
+      el.refreshBtn.textContent = "Atualizando...";
+      try {
+        await loadOrders();
+      } catch (error) {
+        el.ordersBody.innerHTML = `<tr><td colspan="6" class="empty">${safe(error.message)}</td></tr>`;
+      } finally {
+        el.refreshBtn.disabled = false;
+        el.refreshBtn.textContent = "Atualizar agora";
+      }
+    }
+
+    el.loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const user = el.username.value.trim();
+      const pass = el.password.value;
+
+      if (!user || !pass) {
+        el.loginError.textContent = "Informe usuario e senha.";
+        return;
+      }
+
+      state.authHeader = `Basic ${btoa(`${user}:${pass}`)}`;
+      try {
+        await loadOrders();
+        sessionStorage.setItem("adminAuthHeader", state.authHeader);
+        el.loginOverlay.style.display = "none";
+        el.refreshBtn.disabled = false;
+      } catch (error) {
+        el.loginError.textContent = error.message || "Nao foi possivel autenticar";
+      }
+    });
+
+    el.refreshBtn.addEventListener("click", refresh);
+    el.searchInput.addEventListener("input", renderRows);
+    el.statusFilter.addEventListener("change", renderRows);
+    el.sortFilter.addEventListener("change", renderRows);
+
+    (async function bootstrap() {
+      const cached = sessionStorage.getItem("adminAuthHeader");
+      if (!cached) return;
+
+      state.authHeader = cached;
+      try {
+        await loadOrders();
+        el.loginOverlay.style.display = "none";
+        el.refreshBtn.disabled = false;
+      } catch {
+        sessionStorage.removeItem("adminAuthHeader");
+      }
+    })();
+  </script>
+</body>
+</html>
