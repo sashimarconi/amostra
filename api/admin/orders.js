@@ -1,8 +1,33 @@
-const ALLOWPAY_BASE_URL = "https://api.allowpay.online/functions/v1";
+const GHOSTSPAY_BASE_URL =
+  process.env.GHOSTSPAY_BASE_URL ||
+  process.env.ALLOWPAY_BASE_URL ||
+  "https://api.ghostspaysv2.com/functions/v1";
 
-function getAllowPayCredentials() {
-  const secretKey = process.env.ALLOWPAY_SECRET_KEY || process.env.SPEEDPAG_PUBLIC_KEY || "";
-  const companyId = process.env.ALLOWPAY_COMPANY_ID || process.env.SPEEDPAG_SECRET_KEY || "";
+function readEnv(...keys) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return "";
+}
+
+function getGhostsPayCredentials() {
+  const secretKey = readEnv(
+    "GHOSTSPAY_SECRET_KEY",
+    "GHOSTSPAY_API_KEY",
+    "ALLOWPAY_SECRET_KEY",
+    "ALLOWPAY_API_KEY",
+    "SPEEDPAG_PUBLIC_KEY",
+  );
+  const companyId = readEnv(
+    "GHOSTSPAY_COMPANY_ID",
+    "GHOSTSPAY_COMPANYID",
+    "ALLOWPAY_COMPANY_ID",
+    "ALLOWPAY_COMPANYID",
+    "SPEEDPAG_SECRET_KEY",
+  );
   return { secretKey, companyId };
 }
 
@@ -132,7 +157,7 @@ function normalizeTransaction(tx, abandonedAfterMinutes) {
 }
 
 async function fetchTransactionsPage(auth, page, pageSize) {
-  const response = await fetch(`${ALLOWPAY_BASE_URL}/transactions?page=${page}&limit=${pageSize}`, {
+  const response = await fetch(`${GHOSTSPAY_BASE_URL}/transactions?page=${page}&limit=${pageSize}`, {
     method: "GET",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -142,7 +167,7 @@ async function fetchTransactionsPage(auth, page, pageSize) {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = payload?.message || payload?.error || "Erro ao listar vendas na AllowPay";
+    const message = payload?.message || payload?.error || "Erro ao listar vendas na Ghosts Pay";
     const error = new Error(message);
     error.status = response.status;
     error.details = payload;
@@ -177,10 +202,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { secretKey, companyId } = getAllowPayCredentials();
+    const { secretKey, companyId } = getGhostsPayCredentials();
     if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais AllowPay nao configuradas no servidor",
+        error: "Credenciais Ghosts Pay nao configuradas no servidor",
       });
     }
 

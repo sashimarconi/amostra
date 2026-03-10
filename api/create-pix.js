@@ -1,8 +1,33 @@
-const ALLOWPAY_BASE_URL = "https://api.allowpay.online/functions/v1";
+const GHOSTSPAY_BASE_URL =
+  process.env.GHOSTSPAY_BASE_URL ||
+  process.env.ALLOWPAY_BASE_URL ||
+  "https://api.ghostspaysv2.com/functions/v1";
+
+function readEnv(...keys) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return "";
+}
 
 function getCredentials() {
-  const secretKey = process.env.ALLOWPAY_SECRET_KEY || process.env.SPEEDPAG_PUBLIC_KEY || "";
-  const companyId = process.env.ALLOWPAY_COMPANY_ID || process.env.SPEEDPAG_SECRET_KEY || "";
+  const secretKey = readEnv(
+    "GHOSTSPAY_SECRET_KEY",
+    "GHOSTSPAY_API_KEY",
+    "ALLOWPAY_SECRET_KEY",
+    "ALLOWPAY_API_KEY",
+    "SPEEDPAG_PUBLIC_KEY",
+  );
+  const companyId = readEnv(
+    "GHOSTSPAY_COMPANY_ID",
+    "GHOSTSPAY_COMPANYID",
+    "ALLOWPAY_COMPANY_ID",
+    "ALLOWPAY_COMPANYID",
+    "SPEEDPAG_SECRET_KEY",
+  );
   return { secretKey, companyId };
 }
 
@@ -91,7 +116,7 @@ export default async function handler(req, res) {
     const { secretKey, companyId } = getCredentials();
     if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais AllowPay nao configuradas no servidor",
+        error: "Credenciais Ghosts Pay nao configuradas no servidor",
       });
     }
     const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
@@ -121,7 +146,7 @@ export default async function handler(req, res) {
       pix: {},
     };
 
-    const allowpayResponse = await fetch(`${ALLOWPAY_BASE_URL}/transactions`, {
+    const gatewayResponse = await fetch(`${GHOSTSPAY_BASE_URL}/transactions`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -131,11 +156,11 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload),
     });
 
-    const responseData = await allowpayResponse.json().catch(() => ({}));
+    const responseData = await gatewayResponse.json().catch(() => ({}));
 
-    if (!allowpayResponse.ok) {
-      return res.status(allowpayResponse.status).json({
-        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na AllowPay",
+    if (!gatewayResponse.ok) {
+      return res.status(gatewayResponse.status).json({
+        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na Ghosts Pay",
         details: responseData,
       });
     }
@@ -145,7 +170,7 @@ export default async function handler(req, res) {
 
     if (!pixCode || !txid) {
       return res.status(500).json({
-        error: "Resposta invalida da AllowPay",
+        error: "Resposta invalida da Ghosts Pay",
         details: responseData,
       });
     }

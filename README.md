@@ -7,14 +7,22 @@ Projeto estático (HTML/CSS/JS) pronto para deploy na Vercel.
 - GitHub: repositório com branch `main`
 - Vercel: importar o repositório e manter as configurações padrão para projeto estático
 
-## PIX (AllowPay)
+## PIX (Ghosts Pay)
 
-As rotas serverless em `api/create-pix.js` e `api/pix/status/[id].js` usam a API da AllowPay.
+As rotas serverless em `api/create-pix.js` e `api/pix/status/[id].js` usam a API da Ghosts Pay.
 
 Configure as variáveis de ambiente no projeto (ex.: Vercel):
 
-- `ALLOWPAY_SECRET_KEY`
-- `ALLOWPAY_COMPANY_ID`
+- `GHOSTSPAY_SECRET_KEY`
+- `GHOSTSPAY_COMPANY_ID`
+- `GHOSTSPAY_BASE_URL` (opcional, padrao: `https://api.ghostspaysv2.com/functions/v1`)
+
+Aliases aceitos para facilitar migracao (legado):
+
+- `GHOSTSPAY_API_KEY` (alias de `GHOSTSPAY_SECRET_KEY`)
+- `GHOSTSPAY_COMPANYID` (alias de `GHOSTSPAY_COMPANY_ID`)
+- `ALLOWPAY_API_KEY` (alias de `ALLOWPAY_SECRET_KEY`)
+- `ALLOWPAY_COMPANYID` (alias de `ALLOWPAY_COMPANY_ID`)
 
 Compatibilidade legada (opcional):
 
