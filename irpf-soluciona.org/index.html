@@ -52,6 +52,8 @@
 
         window.__ttqPixPurchaseHookInstalled = true;
         var originalFetch = window.fetch.bind(window);
+        var txAmountById = Object.create(null);
+        var purchaseTrackedById = Object.create(null);
 
         function getUrl(input) {
           if (typeof input === "string") return input;
@@ -96,9 +98,21 @@
             if (method === "POST" && /\/api\/create-pix(?:$|\?|\/)/.test(url) && response && response.ok) {
               var cloned = response.clone();
               var data = await cloned.json().catch(function () { return {}; });
-              var hasPix = Boolean(data && (data.pix_code || data.pixCode));
-              if (hasPix) {
-                firePurchase(parseRequestAmount(init), data.txid || data.id || "");
+              var txid = data && (data.txid || data.id || "");
+              if (txid) {
+                txAmountById[txid] = parseRequestAmount(init);
+              }
+            }
+
+            if (method === "GET" && /\/api\/pix\/status\//.test(url) && response && response.ok) {
+              var statusClone = response.clone();
+              var statusData = await statusClone.json().catch(function () { return {}; });
+              var status = String(statusData && statusData.status ? statusData.status : "").toLowerCase();
+              var txStatusId = String(statusData && (statusData.txid || statusData.id || ""));
+
+              if (status === "paid" && txStatusId && !purchaseTrackedById[txStatusId]) {
+                purchaseTrackedById[txStatusId] = true;
+                firePurchase(txAmountById[txStatusId] || 0, txStatusId);
               }
             }
           } catch (_) {
