@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       endpoint: '/webhook',
-      message: 'Webhook ativo. Envie POST com eventos da SpeedPag.'
+      message: 'Webhook ativo. Envie POST com eventos da AllowPay.'
     });
   }
 

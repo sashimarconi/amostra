@@ -1,9 +1,9 @@
-const SPEEDPAG_BASE_URL = "https://api.speedpag.com/v1";
+const ALLOWPAY_BASE_URL = "https://api.allowpay.online/functions/v1";
 
-function getSpeedPagCredentials() {
-  const publicKey = process.env.SPEEDPAG_PUBLIC_KEY || "";
-  const secretKey = process.env.SPEEDPAG_SECRET_KEY || "";
-  return { publicKey, secretKey };
+function getAllowPayCredentials() {
+  const secretKey = process.env.ALLOWPAY_SECRET_KEY || process.env.SPEEDPAG_PUBLIC_KEY || "";
+  const companyId = process.env.ALLOWPAY_COMPANY_ID || process.env.SPEEDPAG_SECRET_KEY || "";
+  return { secretKey, companyId };
 }
 
 function getAdminCredentials() {
@@ -47,9 +47,9 @@ function isPendingStatus(status) {
 function normalizeStatus(status) {
   const value = (status || "").toString().toLowerCase();
   if (isPaidStatus(value)) return "paid";
-  if (value === "refunded" || value === "chargeback") return "refund";
-  if (value === "in_protest") return "med";
-  if (value === "cancelled" || value === "canceled" || value === "refused") return "canceled";
+  if (value === "refunded" || value === "chargeback" || value === "chargedback") return "refund";
+  if (value === "in_protest" || value === "in_analisys") return "med";
+  if (value === "cancelled" || value === "canceled" || value === "refused" || value === "failed" || value === "expired") return "canceled";
   return "pending";
 }
 
@@ -67,6 +67,7 @@ function safeJsonParse(value) {
 function getTransactionsArray(payload) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.data?.data)) return payload.data.data;
   if (Array.isArray(payload?.data?.items)) return payload.data.items;
   if (Array.isArray(payload?.data?.results)) return payload.data.results;
   if (Array.isArray(payload?.transactions)) return payload.transactions;
@@ -101,7 +102,7 @@ function normalizeTransaction(tx, abandonedAfterMinutes) {
     isAbandoned,
     amount,
     amountFormatted: (amount / 100).toFixed(2),
-    paymentMethod: data?.paymentMethod || tx?.paymentMethod || "pix",
+    paymentMethod: data?.paymentMethod || tx?.paymentMethod || "PIX",
     createdAt,
     paidAt,
     postbackUrl: data?.postbackUrl || tx?.postbackUrl || null,
@@ -131,7 +132,7 @@ function normalizeTransaction(tx, abandonedAfterMinutes) {
 }
 
 async function fetchTransactionsPage(auth, page, pageSize) {
-  const response = await fetch(`${SPEEDPAG_BASE_URL}/transactions?page=${page}&pageSize=${pageSize}`, {
+  const response = await fetch(`${ALLOWPAY_BASE_URL}/transactions?page=${page}&limit=${pageSize}`, {
     method: "GET",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -141,7 +142,7 @@ async function fetchTransactionsPage(auth, page, pageSize) {
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = payload?.message || payload?.error || "Erro ao listar vendas na SpeedPag";
+    const message = payload?.message || payload?.error || "Erro ao listar vendas na AllowPay";
     const error = new Error(message);
     error.status = response.status;
     error.details = payload;
@@ -176,14 +177,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { publicKey, secretKey } = getSpeedPagCredentials();
-    if (!publicKey || !secretKey) {
+    const { secretKey, companyId } = getAllowPayCredentials();
+    if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais SpeedPag nao configuradas no servidor",
+        error: "Credenciais AllowPay nao configuradas no servidor",
       });
     }
 
-    const auth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
+    const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
     const abandonedAfterMinutes = Math.max(
       Number.parseInt(process.env.ABANDONED_AFTER_MINUTES || "30", 10) || 30,
       1,

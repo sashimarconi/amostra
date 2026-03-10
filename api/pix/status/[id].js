@@ -1,9 +1,9 @@
-const SPEEDPAG_BASE_URL = "https://api.speedpag.com/v1";
+const ALLOWPAY_BASE_URL = "https://api.allowpay.online/functions/v1";
 
 function getCredentials() {
-  const publicKey = process.env.SPEEDPAG_PUBLIC_KEY || "";
-  const secretKey = process.env.SPEEDPAG_SECRET_KEY || "";
-  return { publicKey, secretKey };
+  const secretKey = process.env.ALLOWPAY_SECRET_KEY || process.env.SPEEDPAG_PUBLIC_KEY || "";
+  const companyId = process.env.ALLOWPAY_COMPANY_ID || process.env.SPEEDPAG_SECRET_KEY || "";
+  return { secretKey, companyId };
 }
 
 function mapStatus(rawStatus) {
@@ -11,13 +11,13 @@ function mapStatus(rawStatus) {
   if (["paid", "approved", "completed"].includes(status)) {
     return "paid";
   }
-  if (["refund", "refunded", "chargeback"].includes(status)) {
+  if (["refund", "refunded", "chargedback", "chargeback"].includes(status)) {
     return "refund";
   }
-  if (["canceled", "cancelled", "declined", "failed", "refused"].includes(status)) {
+  if (["canceled", "cancelled", "declined", "failed", "refused", "expired"].includes(status)) {
     return "canceled";
   }
-  if (["med", "in_protest"].includes(status)) {
+  if (["med", "in_protest", "in_analisys"].includes(status)) {
     return "med";
   }
   return "pending";
@@ -34,15 +34,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "txid/id é obrigatório" });
     }
 
-    const { publicKey, secretKey } = getCredentials();
-    if (!publicKey || !secretKey) {
+    const { secretKey, companyId } = getCredentials();
+    if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais SpeedPag não configuradas no servidor",
+        error: "Credenciais AllowPay nao configuradas no servidor",
       });
     }
-    const auth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
+    const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
 
-    const response = await fetch(`${SPEEDPAG_BASE_URL}/transactions/${id}`, {
+    const response = await fetch(`${ALLOWPAY_BASE_URL}/transactions/${id}`, {
       method: "GET",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -62,6 +62,7 @@ export default async function handler(req, res) {
     const rawStatus =
       payload?.data?.status ||
       payload?.status ||
+      payload?.data?.transaction?.status ||
       payload?.transaction?.status ||
       payload?.payment?.status ||
       "";

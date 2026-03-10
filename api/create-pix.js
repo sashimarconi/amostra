@@ -1,9 +1,9 @@
-const SPEEDPAG_BASE_URL = "https://api.speedpag.com/v1";
+const ALLOWPAY_BASE_URL = "https://api.allowpay.online/functions/v1";
 
 function getCredentials() {
-  const publicKey = process.env.SPEEDPAG_PUBLIC_KEY || "";
-  const secretKey = process.env.SPEEDPAG_SECRET_KEY || "";
-  return { publicKey, secretKey };
+  const secretKey = process.env.ALLOWPAY_SECRET_KEY || process.env.SPEEDPAG_PUBLIC_KEY || "";
+  const companyId = process.env.ALLOWPAY_COMPANY_ID || process.env.SPEEDPAG_SECRET_KEY || "";
+  return { secretKey, companyId };
 }
 
 function buildOrigin(req) {
@@ -57,6 +57,23 @@ function normalizeMetadata(metadata) {
   }
 }
 
+function normalizePaymentMethod(value) {
+  const method = (value || "").toString().toUpperCase();
+  return method || "PIX";
+}
+
+function buildShipping(customer) {
+  return {
+    neighborhood: customer?.neighborhood || "Centro",
+    zipCode: customer?.zipCode || customer?.zipcode || "00000000",
+    city: customer?.city || "Sao Paulo",
+    complement: customer?.complement || "",
+    streetNumber: customer?.streetNumber || customer?.number || "0",
+    street: customer?.street || customer?.address || "Nao informado",
+    state: customer?.state || "SP",
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -71,32 +88,31 @@ export default async function handler(req, res) {
       });
     }
 
-    const { publicKey, secretKey } = getCredentials();
-    if (!publicKey || !secretKey) {
+    const { secretKey, companyId } = getCredentials();
+    if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais SpeedPag não configuradas no servidor",
+        error: "Credenciais AllowPay nao configuradas no servidor",
       });
     }
-    const auth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
+    const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
+
+    const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod);
 
     const payload = {
       amount,
-      paymentMethod: "pix",
+      paymentMethod,
       customer: {
         name: customer.name,
         email: customer.email,
         phone: customer.cellphone || customer.phone || "",
-        document: {
-          type: "cpf",
-          number: customer.taxId || customer.cpf || "",
-        },
+        document: customer.taxId || customer.cpf || "",
       },
+      shipping: buildShipping(customer),
       items: [
         {
           title: description || "Pagamento",
           unitPrice: amount,
           quantity: 1,
-          tangible: false,
           externalRef: "checkout",
         },
       ],
@@ -105,7 +121,7 @@ export default async function handler(req, res) {
       pix: {},
     };
 
-    const speedpagResponse = await fetch(`${SPEEDPAG_BASE_URL}/transactions`, {
+    const allowpayResponse = await fetch(`${ALLOWPAY_BASE_URL}/transactions`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -115,11 +131,11 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload),
     });
 
-    const responseData = await speedpagResponse.json().catch(() => ({}));
+    const responseData = await allowpayResponse.json().catch(() => ({}));
 
-    if (!speedpagResponse.ok) {
-      return res.status(speedpagResponse.status).json({
-        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na SpeedPag",
+    if (!allowpayResponse.ok) {
+      return res.status(allowpayResponse.status).json({
+        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na AllowPay",
         details: responseData,
       });
     }
@@ -129,7 +145,7 @@ export default async function handler(req, res) {
 
     if (!pixCode || !txid) {
       return res.status(500).json({
-        error: "Resposta inválida da SpeedPag",
+        error: "Resposta invalida da AllowPay",
         details: responseData,
       });
     }
