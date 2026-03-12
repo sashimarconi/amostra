@@ -126,8 +126,24 @@ export default async function handler(req, res) {
 
     const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod);
 
+    // Normalize amount: detect if frontend sent cents (e.g. 2136) or reais (e.g. 21.36)
+    const rawAmount = Number(amount || 0);
+    let amountReais = 0;
+    let amountCents = 0;
+    if (Number.isFinite(rawAmount)) {
+      if (rawAmount >= 1000) {
+        // very likely cents (e.g. 2136 -> R$21.36)
+        amountCents = Math.round(rawAmount);
+        amountReais = amountCents / 100;
+      } else {
+        // treat as reais (e.g. 21.36)
+        amountReais = rawAmount;
+        amountCents = Math.round(amountReais * 100);
+      }
+    }
+
     const payload = {
-      amount,
+      amount: amountReais,
       payment_method: paymentMethod,
       customer: {
         name: customer.name,
@@ -139,7 +155,7 @@ export default async function handler(req, res) {
       items: [
         {
           title: description || "Pagamento",
-          unitPrice: Math.round(Number(amount) * 100),
+          unitPrice: amountCents,
           quantity: 1,
           tangible: false,
         },
@@ -164,7 +180,11 @@ export default async function handler(req, res) {
     if (!gatewayResponse.ok) {
       return res.status(gatewayResponse.status).json({
         error: responseData?.message || responseData?.error || "Erro ao criar pagamento na Nitro Pagamentos",
+        statusCode: gatewayResponse.status,
         details: responseData,
+        debug: {
+          sent: { amountReais, amountCents, payment_method: paymentMethod },
+        },
       });
     }
 
@@ -184,6 +204,7 @@ export default async function handler(req, res) {
       txid,
       id: txid,
       raw: responseData,
+      debug: { amountReais, amountCents },
     });
   } catch (error) {
     return res.status(500).json({
