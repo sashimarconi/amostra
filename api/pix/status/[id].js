@@ -1,7 +1,8 @@
-const GHOSTSPAY_BASE_URL =
+const NITRO_BASE_URL =
+  process.env.NITRO_BASE_URL ||
   process.env.GHOSTSPAY_BASE_URL ||
   process.env.ALLOWPAY_BASE_URL ||
-  "https://api.ghostspaysv2.com/functions/v1";
+  "https://api.nitropagamento.app";
 
 function readEnv(...keys) {
   for (const key of keys) {
@@ -15,6 +16,8 @@ function readEnv(...keys) {
 
 function getCredentials() {
   const secretKey = readEnv(
+    "NITRO_API_KEY",
+    "NITRO_SECRET_KEY",
     "GHOSTSPAY_SECRET_KEY",
     "GHOSTSPAY_API_KEY",
     "ALLOWPAY_SECRET_KEY",
@@ -22,6 +25,8 @@ function getCredentials() {
     "SPEEDPAG_PUBLIC_KEY",
   );
   const companyId = readEnv(
+    "NITRO_COMPANY_ID",
+    "NITRO_COMPANYID",
     "GHOSTSPAY_COMPANY_ID",
     "GHOSTSPAY_COMPANYID",
     "ALLOWPAY_COMPANY_ID",
@@ -33,13 +38,13 @@ function getCredentials() {
 
 function mapStatus(rawStatus) {
   const status = (rawStatus || "").toString().toLowerCase();
-  if (["paid", "approved", "completed"].includes(status)) {
+  if (["paid", "approved", "completed", "pago"].includes(status)) {
     return "paid";
   }
-  if (["refund", "refunded", "chargedback", "chargeback"].includes(status)) {
+  if (["refund", "refunded", "chargedback", "chargeback", "reembolsado", "reembolsada"].includes(status)) {
     return "refund";
   }
-  if (["canceled", "cancelled", "declined", "failed", "refused", "expired"].includes(status)) {
+  if (["canceled", "cancelled", "declined", "failed", "refused", "expired", "cancelado", "cancelada"].includes(status)) {
     return "canceled";
   }
   if (["med", "in_protest", "in_analisys"].includes(status)) {
@@ -62,12 +67,12 @@ export default async function handler(req, res) {
     const { secretKey, companyId } = getCredentials();
     if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais Ghosts Pay nao configuradas no servidor",
+        error: "Credenciais Nitro Pagamentos nao configuradas no servidor",
       });
     }
     const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
 
-    const response = await fetch(`${GHOSTSPAY_BASE_URL}/transactions/${id}`, {
+    const response = await fetch(`${NITRO_BASE_URL}/transactions/${id}`, {
       method: "GET",
       headers: {
         Authorization: `Basic ${auth}`,

@@ -1,7 +1,8 @@
-const GHOSTSPAY_BASE_URL =
+const NITRO_BASE_URL =
+  process.env.NITRO_BASE_URL ||
   process.env.GHOSTSPAY_BASE_URL ||
   process.env.ALLOWPAY_BASE_URL ||
-  "https://api.ghostspaysv2.com/functions/v1";
+  "https://api.nitropagamento.app";
 
 function readEnv(...keys) {
   for (const key of keys) {
@@ -15,6 +16,8 @@ function readEnv(...keys) {
 
 function getCredentials() {
   const secretKey = readEnv(
+    "NITRO_API_KEY",
+    "NITRO_SECRET_KEY",
     "GHOSTSPAY_SECRET_KEY",
     "GHOSTSPAY_API_KEY",
     "ALLOWPAY_SECRET_KEY",
@@ -22,6 +25,8 @@ function getCredentials() {
     "SPEEDPAG_PUBLIC_KEY",
   );
   const companyId = readEnv(
+    "NITRO_COMPANY_ID",
+    "NITRO_COMPANYID",
     "GHOSTSPAY_COMPANY_ID",
     "GHOSTSPAY_COMPANYID",
     "ALLOWPAY_COMPANY_ID",
@@ -40,6 +45,8 @@ function buildOrigin(req) {
 function extractPixCode(payload) {
   return (
     payload?.data?.pix?.qrcode ||
+    payload?.data?.pix_code ||
+    payload?.data?.pix_qr_code ||
     payload?.pixCode ||
     payload?.pix_code ||
     payload?.qrCode ||
@@ -83,8 +90,8 @@ function normalizeMetadata(metadata) {
 }
 
 function normalizePaymentMethod(value) {
-  const method = (value || "").toString().toUpperCase();
-  return method || "PIX";
+  const method = (value || "").toString().toLowerCase();
+  return method || "pix";
 }
 
 function buildShipping(customer) {
@@ -116,7 +123,7 @@ export default async function handler(req, res) {
     const { secretKey, companyId } = getCredentials();
     if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais Ghosts Pay nao configuradas no servidor",
+        error: "Credenciais Nitro Pagamentos nao configuradas no servidor",
       });
     }
     const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
@@ -125,7 +132,7 @@ export default async function handler(req, res) {
 
     const payload = {
       amount,
-      paymentMethod,
+      payment_method: paymentMethod,
       customer: {
         name: customer.name,
         email: customer.email,
@@ -136,17 +143,17 @@ export default async function handler(req, res) {
       items: [
         {
           title: description || "Pagamento",
-          unitPrice: amount,
+          unitPrice: Math.round(Number(amount) * 100),
           quantity: 1,
-          externalRef: "checkout",
+          tangible: false,
         },
       ],
       postbackUrl: `${buildOrigin(req)}/webhook`,
       metadata: normalizeMetadata(metadata),
-      pix: {},
+      tracking: req.body?.tracking || undefined,
     };
 
-    const gatewayResponse = await fetch(`${GHOSTSPAY_BASE_URL}/transactions`, {
+    const gatewayResponse = await fetch(`${NITRO_BASE_URL}/transactions`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${auth}`,
@@ -160,7 +167,7 @@ export default async function handler(req, res) {
 
     if (!gatewayResponse.ok) {
       return res.status(gatewayResponse.status).json({
-        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na Ghosts Pay",
+        error: responseData?.message || responseData?.error || "Erro ao criar pagamento na Nitro Pagamentos",
         details: responseData,
       });
     }
@@ -170,7 +177,7 @@ export default async function handler(req, res) {
 
     if (!pixCode || !txid) {
       return res.status(500).json({
-        error: "Resposta invalida da Ghosts Pay",
+        error: "Resposta invalida da Nitro Pagamentos",
         details: responseData,
       });
     }

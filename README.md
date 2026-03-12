@@ -7,20 +7,20 @@ Projeto estático (HTML/CSS/JS) pronto para deploy na Vercel.
 - GitHub: repositório com branch `main`
 - Vercel: importar o repositório e manter as configurações padrão para projeto estático
 
-## PIX (Ghosts Pay)
+## PIX (Nitro Pagamentos)
 
-As rotas serverless em `api/create-pix.js` e `api/pix/status/[id].js` usam a API da Ghosts Pay.
+As rotas serverless em `api/create-pix.js` e `api/pix/status/[id].js` usam a API do Nitro Pagamentos.
 
 Configure as variáveis de ambiente no projeto (ex.: Vercel):
 
-- `GHOSTSPAY_SECRET_KEY`
-- `GHOSTSPAY_COMPANY_ID`
-- `GHOSTSPAY_BASE_URL` (opcional, padrao: `https://api.ghostspaysv2.com/functions/v1`)
+- `NITRO_API_KEY` (ou `NITRO_SECRET_KEY`)
+- `NITRO_COMPANY_ID` (ou `NITRO_COMPANYID`)
+- `NITRO_BASE_URL` (opcional, padrao: `https://api.nitropagamento.app`)
 
 Aliases aceitos para facilitar migracao (legado):
 
-- `GHOSTSPAY_API_KEY` (alias de `GHOSTSPAY_SECRET_KEY`)
-- `GHOSTSPAY_COMPANYID` (alias de `GHOSTSPAY_COMPANY_ID`)
+- `GHOSTSPAY_API_KEY` (alias de `NITRO_API_KEY`)
+- `GHOSTSPAY_COMPANYID` (alias de `NITRO_COMPANY_ID`)
 - `ALLOWPAY_API_KEY` (alias de `ALLOWPAY_SECRET_KEY`)
 - `ALLOWPAY_COMPANYID` (alias de `ALLOWPAY_COMPANY_ID`)
 

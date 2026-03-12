@@ -1,7 +1,8 @@
-const GHOSTSPAY_BASE_URL =
+const NITRO_BASE_URL =
+  process.env.NITRO_BASE_URL ||
   process.env.GHOSTSPAY_BASE_URL ||
   process.env.ALLOWPAY_BASE_URL ||
-  "https://api.ghostspaysv2.com/functions/v1";
+  "https://api.nitropagamento.app";
 
 function readEnv(...keys) {
   for (const key of keys) {
@@ -15,6 +16,8 @@ function readEnv(...keys) {
 
 function getGhostsPayCredentials() {
   const secretKey = readEnv(
+    "NITRO_API_KEY",
+    "NITRO_SECRET_KEY",
     "GHOSTSPAY_SECRET_KEY",
     "GHOSTSPAY_API_KEY",
     "ALLOWPAY_SECRET_KEY",
@@ -22,6 +25,8 @@ function getGhostsPayCredentials() {
     "SPEEDPAG_PUBLIC_KEY",
   );
   const companyId = readEnv(
+    "NITRO_COMPANY_ID",
+    "NITRO_COMPANYID",
     "GHOSTSPAY_COMPANY_ID",
     "GHOSTSPAY_COMPANYID",
     "ALLOWPAY_COMPANY_ID",
@@ -157,7 +162,7 @@ function normalizeTransaction(tx, abandonedAfterMinutes) {
 }
 
 async function fetchTransactionsPage(auth, page, pageSize) {
-  const response = await fetch(`${GHOSTSPAY_BASE_URL}/transactions?page=${page}&limit=${pageSize}`, {
+  const response = await fetch(`${NITRO_BASE_URL}/transactions?page=${page}&limit=${pageSize}`, {
     method: "GET",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -166,8 +171,8 @@ async function fetchTransactionsPage(auth, page, pageSize) {
   });
 
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = payload?.message || payload?.error || "Erro ao listar vendas na Ghosts Pay";
+    if (!response.ok) {
+    const message = payload?.message || payload?.error || "Erro ao listar vendas no Nitro Pagamentos";
     const error = new Error(message);
     error.status = response.status;
     error.details = payload;
@@ -205,7 +210,7 @@ export default async function handler(req, res) {
     const { secretKey, companyId } = getGhostsPayCredentials();
     if (!secretKey || !companyId) {
       return res.status(500).json({
-        error: "Credenciais Ghosts Pay nao configuradas no servidor",
+        error: "Credenciais Nitro Pagamentos nao configuradas no servidor",
       });
     }
 
