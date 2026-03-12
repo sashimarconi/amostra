@@ -13,14 +13,15 @@ As rotas serverless em `api/create-pix.js` e `api/pix/status/[id].js` usam a API
 
 Configure as variáveis de ambiente no projeto (ex.: Vercel):
 
-- `NITRO_API_KEY` (ou `NITRO_SECRET_KEY`)
-- `NITRO_COMPANY_ID` (ou `NITRO_COMPANYID`)
+
+- `NITRO_PUBLIC_KEY` (ex.: `pk_auto_...`)  
+- `NITRO_SECRET_KEY` (ex.: `sk_auto_...`)  
 - `NITRO_BASE_URL` (opcional, padrao: `https://api.nitropagamento.app`)
 
 Aliases aceitos para facilitar migracao (legado):
 
-- `GHOSTSPAY_API_KEY` (alias de `NITRO_API_KEY`)
-- `GHOSTSPAY_COMPANYID` (alias de `NITRO_COMPANY_ID`)
+- `GHOSTSPAY_API_KEY` (alias de `NITRO_PUBLIC_KEY`)
+- `GHOSTSPAY_COMPANYID` (alias de `NITRO_PUBLIC_KEY`)
 - `ALLOWPAY_API_KEY` (alias de `ALLOWPAY_SECRET_KEY`)
 - `ALLOWPAY_COMPANYID` (alias de `ALLOWPAY_COMPANY_ID`)
 

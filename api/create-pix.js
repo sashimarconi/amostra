@@ -15,25 +15,21 @@ function readEnv(...keys) {
 }
 
 function getCredentials() {
-  const secretKey = readEnv(
+  const publicKey = readEnv(
+    "NITRO_PUBLIC_KEY",
     "NITRO_API_KEY",
-    "NITRO_SECRET_KEY",
-    "GHOSTSPAY_SECRET_KEY",
     "GHOSTSPAY_API_KEY",
-    "ALLOWPAY_SECRET_KEY",
-    "ALLOWPAY_API_KEY",
     "SPEEDPAG_PUBLIC_KEY",
   );
-  const companyId = readEnv(
-    "NITRO_COMPANY_ID",
-    "NITRO_COMPANYID",
-    "GHOSTSPAY_COMPANY_ID",
-    "GHOSTSPAY_COMPANYID",
-    "ALLOWPAY_COMPANY_ID",
-    "ALLOWPAY_COMPANYID",
+  const secretKey = readEnv(
+    "NITRO_SECRET_KEY",
+    "NITRO_API_SECRET",
+    "GHOSTSPAY_SECRET_KEY",
+    "ALLOWPAY_SECRET_KEY",
+    "ALLOWPAY_API_KEY",
     "SPEEDPAG_SECRET_KEY",
   );
-  return { secretKey, companyId };
+  return { publicKey, secretKey };
 }
 
 function buildOrigin(req) {
@@ -120,13 +116,13 @@ export default async function handler(req, res) {
       });
     }
 
-    const { secretKey, companyId } = getCredentials();
-    if (!secretKey || !companyId) {
+    const { publicKey, secretKey } = getCredentials();
+    if (!publicKey || !secretKey) {
       return res.status(500).json({
         error: "Credenciais Nitro Pagamentos nao configuradas no servidor",
       });
     }
-    const auth = Buffer.from(`${secretKey}:${companyId}`).toString("base64");
+    const auth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
 
     const paymentMethod = normalizePaymentMethod(req.body?.paymentMethod);
 
